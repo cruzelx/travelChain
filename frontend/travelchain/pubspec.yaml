@@ -25,6 +25,7 @@ dependencies:
   geolocator: '^3.0.0'
   flutter_speed_dial: any
   flutter_icons: any
+  intl: any
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -50,6 +51,7 @@ flutter:
   assets:
     - assets/images/loginlogo.svg
     - assets/images/signup.svg
+    - assets/images/mapPin.png
     
 
   # An image asset can refer to one or more resolution-specific "variants", see
