@@ -1,9 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:travelchain/Services/fetchUsers.dart';
+import 'package:travelchain/Services/login.dart';
 import 'package:travelchain/screens/mainScreen.dart';
 import 'package:travelchain/screens/signupScreen.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -18,6 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController _usernameController;
   TextEditingController _passwordController;
 
+  final globalKey = GlobalKey<ScaffoldState>();
+  final snackbar = SnackBar(content: Text("Something went wrong :("));
+
   bool _visible = false;
   @override
   void initState() {
@@ -26,12 +35,55 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
   }
 
+  Future<dynamic> _postLogin() async {
+    var userLogin = Login(
+        name: _usernameController.text.toString(),
+        password: _passwordController.text.toString());
+    var res = await http
+        .get(
+            "https://travelchain.herokuapp.com/signIn?name=${_usernameController.text.toString()}&password=${_passwordController.text.toString()}")
+        .then((value) {
+      var userDetails = FetchUser.fromJson(json.decode(value.body));
+      print(userDetails);
+      setDataInSharedPreferences(
+          userDetails.name, userDetails.uid, userDetails.verifier);
+
+      Navigator.push(
+        context,
+        CupertinoPageRoute(builder: (context) => MainScreen()),
+      );
+    }).catchError((e) {
+      globalKey.currentState.showSnackBar(snackbar);
+    });
+  }
+
+  _checkValidity() {
+    if (_usernameController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty) {
+      _postLogin();
+    } else {
+      globalKey.currentState.showSnackBar(snackbar);
+    }
+  }
+
+  //--------------------Shared Preferences------------------------
+
+  setDataInSharedPreferences(String name, int uid, bool verifier) async {
+    SharedPreferences userData = await SharedPreferences.getInstance();
+    userData.setString("name", name);
+    userData.setInt("uid", uid);
+    userData.setBool("verifier", verifier);
+  }
+
+  //--------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
       child: SafeArea(
         child: Scaffold(
+          key: globalKey,
           backgroundColor: Theme.of(context).backgroundColor,
           body: SingleChildScrollView(
             child: Padding(
@@ -139,11 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(20.0),
                           ),
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                  builder: (context) => MainScreen()),
-                            );
+                            _checkValidity();
                           },
                         ),
                       ),

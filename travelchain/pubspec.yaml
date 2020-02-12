@@ -26,6 +26,19 @@ dependencies:
   flutter_speed_dial: any
   flutter_icons: any
   intl: any
+  video_player: any
+  chewie: any
+  camera: any
+  fluttertoast: any
+  path_provider: any
+  http: any
+  email_validator: any
+  shared_preferences: any
+  http_parser: any
+  dio: '^3.0.8'
+  mime: any
+  loading: any
+  progress_dialog: any
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -52,6 +65,8 @@ flutter:
     - assets/images/loginlogo.svg
     - assets/images/signup.svg
     - assets/images/mapPin.png
+    - assets/images/flag.png
+    - assets/images/flag3.png
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

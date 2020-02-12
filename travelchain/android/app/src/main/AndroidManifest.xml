@@ -5,6 +5,7 @@
          In most cases you can leave this as-is, but you if you want to provide
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
+    
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="travelchain"
@@ -29,5 +30,8 @@
         <meta-data 
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyATf7VbagTTNMA3inY6sh4X_fursnQEPLQ" />
+        
+        
     </application>
+    <uses-permission android:name="android.permission.INTERNET"/>
 </manifest>
