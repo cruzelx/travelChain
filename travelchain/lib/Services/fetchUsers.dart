@@ -1,40 +1,40 @@
 class FetchUser {
-  Loc loc;
-  int tokens;
   String sId;
+  int tokens;
   String name;
   String password;
   String gender;
   bool verifier;
   int uid;
+  Loc loc;
   List<JoinedChallenges> joinedChallenges;
   List<CompletedChallenges> completedChallenges;
-  List<String> assignedVideos;
+  List<AssignedVideos> assignedVideos;
   int iV;
 
   FetchUser(
-      {this.loc,
+      {this.sId,
       this.tokens,
-      this.sId,
       this.name,
       this.password,
       this.gender,
       this.verifier,
       this.uid,
+      this.loc,
       this.joinedChallenges,
       this.completedChallenges,
       this.assignedVideos,
       this.iV});
 
   FetchUser.fromJson(Map<String, dynamic> json) {
-    loc = json['loc'] != null ? new Loc.fromJson(json['loc']) : null;
-    tokens = json['tokens'];
     sId = json['_id'];
+    tokens = json['tokens'];
     name = json['name'];
     password = json['password'];
     gender = json['gender'];
     verifier = json['verifier'];
     uid = json['uid'];
+    loc = json['loc'] != null ? new Loc.fromJson(json['loc']) : null;
     if (json['joinedChallenges'] != null) {
       joinedChallenges = new List<JoinedChallenges>();
       json['joinedChallenges'].forEach((v) {
@@ -47,22 +47,27 @@ class FetchUser {
         completedChallenges.add(new CompletedChallenges.fromJson(v));
       });
     }
-    assignedVideos = json['assignedVideos'].cast<String>();
+    if (json['assignedVideos'] != null) {
+      assignedVideos = new List<AssignedVideos>();
+      json['assignedVideos'].forEach((v) {
+        assignedVideos.add(new AssignedVideos.fromJson(v));
+      });
+    }
     iV = json['__v'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.loc != null) {
-      data['loc'] = this.loc.toJson();
-    }
-    data['tokens'] = this.tokens;
     data['_id'] = this.sId;
+    data['tokens'] = this.tokens;
     data['name'] = this.name;
     data['password'] = this.password;
     data['gender'] = this.gender;
     data['verifier'] = this.verifier;
     data['uid'] = this.uid;
+    if (this.loc != null) {
+      data['loc'] = this.loc.toJson();
+    }
     if (this.joinedChallenges != null) {
       data['joinedChallenges'] =
           this.joinedChallenges.map((v) => v.toJson()).toList();
@@ -71,7 +76,10 @@ class FetchUser {
       data['completedChallenges'] =
           this.completedChallenges.map((v) => v.toJson()).toList();
     }
-    data['assignedVideos'] = this.assignedVideos;
+    if (this.assignedVideos != null) {
+      data['assignedVideos'] =
+          this.assignedVideos.map((v) => v.toJson()).toList();
+    }
     data['__v'] = this.iV;
     return data;
   }
@@ -98,44 +106,85 @@ class Loc {
 
 class JoinedChallenges {
   String sId;
-  int cnumber;
   String name;
+  int cid;
 
-  JoinedChallenges({this.sId, this.cnumber, this.name});
+  JoinedChallenges({this.sId, this.name, this.cid});
 
   JoinedChallenges.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    cnumber = json['cnumber'];
     name = json['name'];
+    cid = json['cid'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['_id'] = this.sId;
-    data['cnumber'] = this.cnumber;
     data['name'] = this.name;
+    data['cid'] = this.cid;
     return data;
   }
 }
 
 class CompletedChallenges {
   String sId;
-  int cnumber;
   String name;
+  int cid;
 
-  CompletedChallenges({this.sId, this.cnumber, this.name});
+  CompletedChallenges({this.sId, this.name, this.cid});
 
   CompletedChallenges.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    cnumber = json['cnumber'];
     name = json['name'];
+    cid = json['cid'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['_id'] = this.sId;
-    data['cnumber'] = this.cnumber;
     data['name'] = this.name;
+    data['cid'] = this.cid;
+    return data;
+  }
+}
+
+class AssignedVideos {
+  bool viewed;
+  String sId;
+  int vid;
+  String vhash;
+  int uid;
+  int cid;
+  String assignTime;
+
+  AssignedVideos(
+      {this.viewed,
+      this.sId,
+      this.vid,
+      this.vhash,
+      this.uid,
+      this.cid,
+      this.assignTime});
+
+  AssignedVideos.fromJson(Map<String, dynamic> json) {
+    viewed = json['viewed'];
+    sId = json['_id'];
+    vid = json['vid'];
+    vhash = json['vhash'];
+    uid = json['uid'];
+    cid = json['cid'];
+    assignTime = json['assignTime'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['viewed'] = this.viewed;
+    data['_id'] = this.sId;
+    data['vid'] = this.vid;
+    data['vhash'] = this.vhash;
+    data['uid'] = this.uid;
+    data['cid'] = this.cid;
+    data['assignTime'] = this.assignTime;
     return data;
   }
 }

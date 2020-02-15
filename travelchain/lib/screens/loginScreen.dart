@@ -28,6 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final snackbar = SnackBar(content: Text("Something went wrong :("));
 
   bool _visible = false;
+  bool _isLoading = false;
+
   @override
   void initState() {
     _usernameController = TextEditingController();
@@ -47,6 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
       print(userDetails);
       setDataInSharedPreferences(
           userDetails.name, userDetails.uid, userDetails.verifier);
+      setState(() {
+        _isLoading = false;
+      });
 
       Navigator.push(
         context,
@@ -60,6 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
   _checkValidity() {
     if (_usernameController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
       _postLogin();
     } else {
       globalKey.currentState.showSnackBar(snackbar);
@@ -184,7 +192,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         width: MediaQuery.of(context).size.width * 0.5,
                         child: RaisedButton(
-                          child: Text("Login"),
+                          child: (_isLoading)
+                              ? Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: <Widget>[
+                                      Text("Logging In"),
+                                      SizedBox(
+                                          height: 15.0,
+                                          width: 15.0,
+                                          child: Center(
+                                              child:
+                                                  CircularProgressIndicator())),
+                                    ])
+                              : Text("Login"),
                           textColor: Colors.white,
                           color: Color(0xff073b94),
                           shape: RoundedRectangleBorder(

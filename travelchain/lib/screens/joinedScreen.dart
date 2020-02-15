@@ -28,6 +28,7 @@ class _JoinedScreenState extends State<JoinedScreen> {
   VideoPlayerController _videoPlayerController;
   ChewieController _chewieController;
   bool _isSelelcted = false;
+  bool _isUploaded = true;
   int sUid;
 
   Future<int> getUidFromPref() async {
@@ -103,6 +104,9 @@ class _JoinedScreenState extends State<JoinedScreen> {
     //   print(endPoint.split('?')[0]);
     // }
     // return ret;
+    setState(() {
+      _isUploaded = false;
+    });
 
     try {
       final url = Uri.parse(endPoint);
@@ -132,6 +136,10 @@ class _JoinedScreenState extends State<JoinedScreen> {
         content: Text("Error occurred unfortunately :("),
       ));
     }
+
+    setState(() {
+      _isUploaded = true;
+    });
     // final mimetypeData = lookupMimeType(asset.path);
     // final url = Uri.parse(endPoint);
     // final req = http.MultipartRequest('POST', url);
@@ -188,9 +196,33 @@ class _JoinedScreenState extends State<JoinedScreen> {
                 ),
               ),
             )
-          : Chewie(
-              controller: _chewieController,
-            ),
+          : Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Chewie(
+                  controller: _chewieController,
+                ),
+                SizedBox(
+                  height:40.0,
+                ),
+                (!_isUploaded)?Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text("Uploading Video..."),
+                          SizedBox(
+                            width: 25.0,
+                          ),
+                          SizedBox(
+                              height: 20.0,
+                              width: 20.0,
+                              child:
+                                  Center(child: CircularProgressIndicator())),
+                        ],
+                      ),
+                    ):Container()
+            ],
+          ),
     );
   }
 }

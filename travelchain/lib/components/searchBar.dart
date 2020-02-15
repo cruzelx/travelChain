@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:travelchain/screens/userProfile.dart';
 
 class SearchBar extends StatefulWidget {
   @override
@@ -56,7 +58,14 @@ class _SearchBarState extends State<SearchBar> {
                   Padding(
                     padding: EdgeInsets.only(right: 8.0, top: 8.0, bottom: 8.0),
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder:(context)=>UserProfile(),
+                          ),
+                        );
+                      },
                       child: CircleAvatar(
                         child: Text("A"),
                       ),

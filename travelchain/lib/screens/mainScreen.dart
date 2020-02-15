@@ -15,6 +15,7 @@ import 'package:travelchain/components/searchBar.dart';
 import 'package:travelchain/components/setLocationButton.dart';
 import 'package:travelchain/screens/createChallengeScreen.dart';
 import 'package:travelchain/screens/updatesScreen.dart';
+import 'package:travelchain/screens/viewChallengeScreen.dart';
 import '../components/challengeDescription.dart';
 import '../Services/fetchAllChallenges.dart';
 
@@ -68,11 +69,7 @@ class _MainScreenState extends State<MainScreen> {
     final res = await http
         .get(
             "https://travelchain.herokuapp.com/joinChallenge?uid=$sUid&cid=$cid")
-        .then((value){
-          setState(() {
-            _isJoined = true;
-          });
-        }) 
+        .then((value) {})
         .catchError((e) {
       globalKey.currentState.showSnackBar(snackBar);
       print("Error Joining");
@@ -96,7 +93,11 @@ class _MainScreenState extends State<MainScreen> {
           infoWindow: InfoWindow(
               title: "${challenge.name}",
               onTap: () {
-                showBottomSheetDescription(context, challenge.cid);
+                // showBottomSheetDescription(context, challenge.cid);
+                Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                        builder: (context) => ViewChallengeScreen(cid: challenge.cid)));
               }),
           icon: flagIcon,
         ));
@@ -346,7 +347,22 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       markers: markerSet,
                     )
-                  : Center(child: CircularProgressIndicator()),
+                  : Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text("Loading Map..."),
+                          SizedBox(
+                            width: 25.0,
+                          ),
+                          SizedBox(
+                              height: 20.0,
+                              width: 20.0,
+                              child:
+                                  Center(child: CircularProgressIndicator())),
+                        ],
+                      ),
+                    ),
             ),
             SearchBar(),
             (!_fabVisibility) ? mapPin : Container(),
@@ -455,12 +471,31 @@ class _MainScreenState extends State<MainScreen> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text(name),
+                          Text(name,
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           Row(
                             children: <Widget>[
-                              Text("$tokenprice T",
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
+                              RichText(
+                                text: TextSpan(
+                                  text: 'Prize: ',
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.black),
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                        text: "$tokenprice T",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20.0,
+                                            color: Colors.black))
+                                  ],
+                                ),
+                              ),
+                              // Text(
+                              //   "Prize: $tokenprice T",
+                              //   style: TextStyle(
+                              //       fontWeight: FontWeight.bold,
+                              //       fontSize: 25.0),
+                              // ),
                             ],
                           )
                         ],
@@ -485,7 +520,6 @@ class _MainScreenState extends State<MainScreen> {
                                     if (!_isJoined) {
                                       joinChallenge(cid);
                                     }
-                                    
                                   },
                                   color: (_isJoined)
                                       ? Colors.grey

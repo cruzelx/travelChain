@@ -37,6 +37,8 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
         appBar: AppBar(
           title: Text("Updates"),
           bottom: TabBar(
+            indicatorColor: Colors.white,
+            indicatorWeight: 3.0,
             tabs: verifier? [
               Tab(text: "For you"),
               Tab(text: "Messages"),

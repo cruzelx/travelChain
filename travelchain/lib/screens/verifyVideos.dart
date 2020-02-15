@@ -1,15 +1,16 @@
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travelchain/Services/fetchAllChallenges.dart';
 import 'package:travelchain/Services/fetchDescription.dart';
+import 'package:travelchain/Services/getVideoUrls.dart';
 import 'package:travelchain/components/chewieListItem.dart';
 import 'package:travelchain/components/videoRecoerder.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VerifyVideos extends StatefulWidget {
   @override
@@ -22,14 +23,65 @@ class _VerifyVideosState extends State<VerifyVideos> {
   final globalKey = GlobalKey<ScaffoldState>();
   final bool looping = true;
   bool isloading = true;
+  bool isPageLoaded = false;
   List<String> _videoUrls = [];
   List<int> _vid = [];
   List<int> _cid = [];
+  List<int> _uid = [];
   List<String> _titles = [];
+  List<bool> _isVerified = [];
 
-  verifyVideo(int vid, int cid) async {
+  int sUid=0;
+
+  Future<int> getUidFromPref() async {
+    SharedPreferences uid = await SharedPreferences.getInstance();
+    return uid.getInt("uid");
+  }
+
+  Future<GetVideoUrls> getVideoUrls() async {
     final res = await http
-        .get("https://travelchain.herokuapp.com/verifyVideo?vid=$vid&cid=$cid")
+        .get("https://travelchain.herokuapp.com/giveVideoUrls?uid=$sUid")
+        .then((value) {
+      int len = json.decode(value.body).length;
+      print(len);
+      if (len > 0) {
+        for (int i = 0; i < len; i++) {
+          var videoUrl = GetVideoUrls.fromJson(json.decode(value.body)[i]);
+          print(videoUrl.viewed);
+          print(json.decode(value.body)[i]);
+          if (!videoUrl.viewed) {
+            _videoUrls.add("https://gateway.ipfs.io/ipfs/" + videoUrl.vhash);
+            _vid.add(videoUrl.vid);
+            _cid.add(videoUrl.cid);
+            _uid.add(videoUrl.uid);
+            _isVerified.add(false);
+            fetchDescription(videoUrl.cid);
+          }
+        }
+      }
+      globalKey.currentState.showSnackBar(SnackBar(
+        content: Text("Video Has Been Loaded..."),
+      ));
+      setState(() {});
+    }).catchError((e) {
+      print(e);
+    });
+  }
+
+  Future<FetchDescription> fetchDescription(int cid) async {
+    final res = await http
+        .get("https://travelchain.herokuapp.com/challenge?cid=$cid")
+        .then((value) {
+      var challenge = FetchDescription.fromJson(json.decode(value.body));
+      _titles.add(challenge.name);
+      setState(() {});
+    }).catchError((e) {});
+  }
+
+  verifyVideo(int vid, int cid, int uid) async {
+    final res = await http
+        .get(
+            "https://travelchain.herokuapp.com/verifyVideo?vid=$vid&cid=$cid&verifierid=$sUid&userid=$uid")
         .then((value) {
       globalKey.currentState
           .showSnackBar(SnackBar(content: Text("Video has been verified :)")));
@@ -39,75 +91,35 @@ class _VerifyVideosState extends State<VerifyVideos> {
     });
   }
 
-  Future<GetAllChallenges> getAllChallenges() async {
-    final res = await http
-        .get("https://travelchain.herokuapp.com/getChallenges")
-        .then((value) {
-      final int len = json.decode(value.body).length;
-      for (int i = 0; i < len; i++) {
-        var challenge = GetAllChallenges.fromJson(json.decode(value.body)[i]);
-        fetchChallengeDescription(challenge.cid,challenge);
-        print(challenge.name);
-      }
-      setState(() {
-        isloading = false;
-      });
-      print(_videoUrls);
-      globalKey.currentState.showSnackBar(SnackBar(content: Text("Videos Loaded...")));
-    }).catchError((e) {
-      print(e);
-    });
-  }
-
-  Future<FetchDescription> fetchChallengeDescription(int cid, GetAllChallenges challenge) async {
-    final res = await http
-        .get("https://travelchain.herokuapp.com/challenge?cid=$cid")
-        .then((value) {
-      var challengeDescription =
-          FetchDescription.fromJson(json.decode(value.body));
-      final int len = challengeDescription.submittedVideos.length;
-      if (len > 0) {
-        for (int i = 0; i < len; i++) {
-          _videoUrls.add(challengeDescription.submittedVideos[i].videoURL);
-          _vid.add(challengeDescription.submittedVideos[i].vid);
-          _cid.add(challengeDescription.cid);
-          _titles.add(challenge.name);
-          print(_videoUrls);
-        }
-      }
-    }).catchError((e) {
-      print(e);
-    });
-    setState(() {
-      
-    });
-  }
-
   runInitially() async {
-    getAllChallenges();
+    sUid = await getUidFromPref();
+    getVideoUrls();
   }
 
-  _playVideos(String url) async {
-    _videoPlayerController = VideoPlayerController.network(url);
-    _chewieController = ChewieController(
-        videoPlayerController: _videoPlayerController,
-        aspectRatio: _videoPlayerController.value.aspectRatio,
-        autoInitialize: true,
-        looping: looping,
-        errorBuilder: (context, errorMessage) {
-          return Center(
-            child: Text(errorMessage, style: TextStyle(color: Colors.white)),
-          );
-        });
-    print("alex");
-    print(_videoPlayerController.value.aspectRatio);
-  }
+  // _playVideos(String url) async {
+  //   _videoPlayerController = VideoPlayerController.network(url);
+  //   _chewieController = ChewieController(
+  //       videoPlayerController: _videoPlayerController,
+  //       aspectRatio: _videoPlayerController.value.aspectRatio,
+  //       autoInitialize: true,
+  //       looping: looping,
+  //       errorBuilder: (context, errorMessage) {
+  //         return Center(
+  //           child: Text(errorMessage, style: TextStyle(color: Colors.white)),
+  //         );
+  //       });
+  //   print("alex");
+  //   print(_videoPlayerController.value.aspectRatio);
+  // }
 
   @override
   void initState() {
     super.initState();
     runInitially();
-    
+    setState(() {
+      isPageLoaded = true;
+      isloading = false;
+    });
   }
 
   @override
@@ -127,42 +139,72 @@ class _VerifyVideosState extends State<VerifyVideos> {
         // color: Colors.pinkAccent,
         child: Padding(
           padding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
-          child: ListView.builder(
-              scrollDirection: Axis.vertical,
-              physics: BouncingScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: _videoUrls.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: (!isloading)?Column(
+          child: (isPageLoaded && _videoUrls.length > 0)
+              ? ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  physics: BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _videoUrls.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      child: (!isloading)
+                          ? Column(
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(_titles[index],
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22.0)),
+                                ),
+                                ChewieListItem(
+                                  videoPlayerControllers:
+                                      new VideoPlayerController.network(
+                                          _videoUrls[index]),
+                                ),
+                                SizedBox(height: 5.0),
+                                RaisedButton(
+                                  onPressed: () {
+                                    verifyVideo(
+                                        _vid[index], _cid[index], _uid[index]);
+                                    setState(() {
+                                      _isVerified[index] = true;
+                                    });
+                                  },
+                                  child: (!_isVerified[index])
+                                      ? Text(
+                                          "Verify",
+                                          style: TextStyle(color: Colors.white),
+                                        )
+                                      : Text(
+                                          "Verified",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                                SizedBox(
+                                  height: 15.0,
+                                ),
+                              ],
+                            )
+                          : Center(child: CircularProgressIndicator()),
+                    );
+                  })
+              : Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(_titles[index],style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      ChewieListItem(
-                        videoPlayerControllers:
-                            new VideoPlayerController.network(
-                                _videoUrls[index]),
-                      ),
-                      SizedBox(height: 5.0),
-                      RaisedButton(
-                        onPressed: () {
-                          verifyVideo(_vid[index], _cid[index]);
-                        },
-                        child: Text(
-                          "Verify",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        color: Theme.of(context).primaryColor,
+                      Text("Loading videos to verify..."),
+                      SizedBox(
+                        width: 25.0,
                       ),
                       SizedBox(
-                        height: 15.0,
-                      ),
+                          height: 20.0,
+                          width: 20.0,
+                          child: Center(child: CircularProgressIndicator())),
                     ],
-                  ):Center(child: CircularProgressIndicator()),
-                );
-              }),
+                  ),
+                ),
         ),
       ),
     );
